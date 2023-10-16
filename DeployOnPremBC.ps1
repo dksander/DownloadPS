@@ -121,7 +121,7 @@ if ($allArtifacts) {
         # Search file in expandfolder with masked publisher and version, because new version depends on version strategie
         $mainAppFileName = $($appPublisher) + ("_$($appName)_".Split([System.IO.Path]::GetInvalidFileNameChars()) -join '') + "*.*.*.*.app"
         $appfiles = @();
-        foreach($item in Get-ChildItem -Path $baseFolder ) {
+        foreach($item in Get-ChildItem -Path $baseFolder -Recurse -Filter '*app') {
             $appfiles += $item.FullName;
         }
 
