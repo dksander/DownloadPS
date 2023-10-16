@@ -99,6 +99,13 @@ if (!(Test-Path $baseFolder)) {
 $baseFolderCreated = $true
 
 # get artifacts
+Write-Host '***********************************'
+Write-Host 'token: ' $token
+Write-Host 'api_url: ' $ENV:GITHUB_API_URL
+Write-Host 'repository: ' $ENV:GITHUB_REPOSITORY
+Write-Host 'branch: ' $branch
+Write-Host '***********************************'
+
 $allArtifacts = @(GetArtifacts -token $token -api_url $ENV:GITHUB_API_URL -repository $ENV:GITHUB_REPOSITORY -mask "Apps" -projects '*' -Version '*' -branch $branch)
 if ($allArtifacts) {
     $allArtifacts | ForEach-Object {
