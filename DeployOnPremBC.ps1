@@ -180,6 +180,6 @@ else {
 }
 
 # delete .artifact folder after deploy
-if ($baseFolderCreated) {
-    Remove-Item $baseFolder -Recurse -Force
-}
+#if ($baseFolderCreated) {
+    #Remove-Item $baseFolder -Recurse -Force
+#}
