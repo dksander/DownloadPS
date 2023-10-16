@@ -7,7 +7,8 @@ param(
     $syncMode,
     $enableDataLoss,
     $uninstallMode,
-    $aadTenantId
+    $aadTenantId,
+    $token
 )
 
 function importModuleWithTestPath
