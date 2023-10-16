@@ -117,7 +117,10 @@ if ($allArtifacts) {
         write-host ''
         write-host '***************************'
         $appFile = Get-ChildItem -path $destinationPath | Where-Object { $_.name -like $mainAppFileName } | ForEach-Object { $_.FullName }
-        if (!(Test-Path $appFile)) {
+          if($appFile -eq $null) {
+            $appFile = Get-ChildItem -path $destinationPath | select-object -First 1
+          }
+        if (!(Test-Path $appFile.FullName)) {
             throw "Could not find $appFile"
         }
         
@@ -156,7 +159,7 @@ if ($allArtifacts) {
         }
 
         $pubwithoption = ''
-        Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification -scope Tenant
+        Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification -scope Tenant
         
         $App = Get-NAVAppInfo -ServerInstance $BCInstance -TenantSpecificProperties -name $appName -Tenant 'default' | Where-Object { $_.IsPublished }
         Write-Host "$("{0:d2}" -f $runner): publishing $($App.Name), $($App.Version) to $BCInstance $pubwithoption"
