@@ -164,26 +164,27 @@ if ($allArtifacts) {
             }
 
             $pubwithoption = ''
-            Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification
+            #Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification
         
             $App = Get-NAVAppInfo -Path $appFile
             Write-Host "$("{0:d2}" -f $runner): publishing $($App.Name), $($App.Version) to $BCInstance $pubwithoption"
-        
-            if (Get-NAVAppInfo -ServerInstance $BCInstance -Name $App.Name ) {
-                write-host "... Publishing app"
-                Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification
-                Write-Host "... sync $syncMode"
-                Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
-                Write-Host "... Upgrading App"
-                Start-NAVAppDataUpgrade -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version
-            }
-            else {
-                write-host "... Publishing app"
-                Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification
-                Write-Host "... sync $syncMode"
-                Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
-                Write-Host "... Installing  App"
-                Install-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version
+            if ( -not (Get-NAVAppInfo -ServerInstance $BCInstance -Name $App.Name -Version $App.version)) {
+                if (Get-NAVAppInfo -ServerInstance $BCInstance -Name $App.Name ) {
+                    write-host "... Publishing app"
+                    Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification
+                    Write-Host "... sync $syncMode"
+                    Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
+                    Write-Host "... Upgrading App"
+                    Start-NAVAppDataUpgrade -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version
+                }
+                else {
+                    write-host "... Publishing app"
+                    Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification
+                    Write-Host "... sync $syncMode"
+                    Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
+                    Write-Host "... Installing  App"
+                    Install-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version
+                }
             }
         }
     }
