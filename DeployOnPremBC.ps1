@@ -99,8 +99,7 @@ if (!(Test-Path $baseFolder)) {
 $baseFolderCreated = $true
 
 # get artifacts
-#$allArtifacts = @(GetArtifacts -token $token -api_url $ENV:GITHUB_API_URL -repository $ENV:GITHUB_REPOSITORY -mask "Apps" -projects '*' -Version '*' -branch $branch)
-$allArtifacts = @(GetArtifacts -api_url $ENV:GITHUB_API_URL -repository $ENV:GITHUB_REPOSITORY -mask "Apps" -projects '*' -Version '*' -branch $branch)
+$allArtifacts = @(GetArtifacts -token $token -api_url $ENV:GITHUB_API_URL -repository $ENV:GITHUB_REPOSITORY -mask "Apps" -projects '*' -Version '*' -branch $branch)
 if ($allArtifacts) {
     $allArtifacts | ForEach-Object {
         $artifactFile = DownloadArtifact -token $token -artifact $_ -path $baseFolder
