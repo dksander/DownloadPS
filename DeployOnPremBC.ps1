@@ -166,7 +166,7 @@ if ($allArtifacts) {
         Write-Host '... publish'
         if ($App.SyncState -ne 'Synced') {
             Write-Host "... sync $syncMode"
-            Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Mode $syncMode -Version $App.Version -Force
+            Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -publish $app.publisher -Version $App.Version -Mode $syncMode -Force
         }
         if (($UnpublisedApps -eq $true) -and ($skipDataupgrade -eq $false) -and (($UnpublishedVersion -ne $App.Version))) {
             Write-Host '... Start-NAVAppDataUpgrade'
