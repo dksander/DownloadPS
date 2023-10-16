@@ -109,7 +109,13 @@ if ($allArtifacts) {
         
         # Search file in expandfolder with masked publisher and version, because new version depends on version strategie
         $mainAppFileName = $($appPublisher) + ("_$($appName)_".Split([System.IO.Path]::GetInvalidFileNameChars()) -join '') + "*.*.*.*.app"
-
+        write-host '***************************'
+        write-host 'destinationPath: ' $destinationPath
+        write-host 'name:' $_.name
+        write-host 'mainAppFileName:' $mainAppFileName
+        write-host ''
+        write-host ''
+        write-host '***************************'
         $appFile = Get-ChildItem -path $destinationPath | Where-Object { $_.name -like $mainAppFileName } | ForEach-Object { $_.FullName }
         if (!(Test-Path $appFile)) {
             throw "Could not find $appFile"
