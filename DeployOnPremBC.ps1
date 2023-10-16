@@ -154,19 +154,24 @@ if ($allArtifacts) {
         $pubwithoption = ''
         Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification
         
-        $App = Get-NAVAppInfo -ServerInstance $BCInstance -TenantSpecificProperties -name $appName -Tenant 'default' | Where-Object { $_.IsPublished }
+        $App = Get-NAVAppInfo -Path $appFile.FullName
         Write-Host "$("{0:d2}" -f $runner): publishing $($App.Name), $($App.Version) to $BCInstance $pubwithoption"
-        Write-Host '... publish'
-        if ($App.SyncState -ne 'Synced') {
+        
+        if (Get-NAVAppInfo -ServerInstance $BCInstance -Name $App.Name ) {
+            write-host "... Publishing app"
+            Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification
             Write-Host "... sync $syncMode"
-            Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -publish $app.publisher -Version $App.Version -Mode $syncMode -Force
+            Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
+            Write-Host "... Upgrading App"
+            Start-NAVAppDataUpgrade -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version
         }
-        if (($UnpublisedApps -eq $true) -and ($skipDataupgrade -eq $false) -and (($UnpublishedVersion -ne $App.Version))) {
-            Write-Host '... Start-NAVAppDataUpgrade'
-            Start-NAVAppDataUpgrade -ServerInstance $BCInstance -Name $App.Name -Version $App.Version
-        } else {
-            Write-Host '... Install-NAVApp'
-            Install-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version
+        else {
+            write-host "... Publishing app"
+            Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification
+            Write-Host "... sync $syncMode"
+            Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
+            Write-Host "... Installing  App"
+            Install-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version
         }
     }
 }
