@@ -84,7 +84,7 @@ try{
 }
 
 # create artifacts folder
-$baseFolder = Join-Path (Get-Location).Path ".artifacts"
+$baseFolder = Join-Path -path ((Get-Location).Path) -childpath ".artifacts"
 if (!(Test-Path $baseFolder)) {
     New-Item $baseFolder -ItemType Directory | Out-Null
 }
