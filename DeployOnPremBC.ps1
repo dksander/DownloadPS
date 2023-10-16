@@ -8,12 +8,13 @@ param(
     $enableDataLoss,
     $uninstallMode
 )
-function PreLoadModule(){
- 
+function PreLoadModule() {
+<#
     if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
         Write-Host "Installing NuGet Package Provider"
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -WarningAction Ignore | Out-Null
     }
+#>
     if (!(Get-Package -Name BcContainerHelper -ErrorAction Ignore)) {
         Write-Host "Installing BCContainerHelper PowerShell package"
         Install-Package BcContainerHelper -Force -WarningAction Ignore | Out-Null
@@ -165,12 +166,12 @@ if ($allArtifacts) {
             $pubwithoption = ''
             Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification
         
-            $App = Get-NAVAppInfo -Path $appFile.FullName
+            $App = Get-NAVAppInfo -Path $appFile
             Write-Host "$("{0:d2}" -f $runner): publishing $($App.Name), $($App.Version) to $BCInstance $pubwithoption"
         
             if (Get-NAVAppInfo -ServerInstance $BCInstance -Name $App.Name ) {
                 write-host "... Publishing app"
-                Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification
+                Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification
                 Write-Host "... sync $syncMode"
                 Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
                 Write-Host "... Upgrading App"
