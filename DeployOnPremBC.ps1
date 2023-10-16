@@ -6,8 +6,7 @@ param(
     $branch,
     $syncMode,
     $enableDataLoss,
-    $uninstallMode,
-    $aadTenantId
+    $uninstallMode
 )
 
 function importModuleWithTestPath
@@ -59,13 +58,6 @@ testOption "DoNotSaveData","ClearSchema","SaveData","" $uninstallMode
 # disable any datadeletion if enableDataLoss is false 
 if ($enableDataLoss -eq $false) {
     $uninstallMode = ''
-}
-
-# test aadTenantId
-if ($aadTenantId) {
-    if (!(testIsGuid($aadTenantId))) {
-        throw "parameter aadTenantId is not a valid GUID"
-    }
 }
 
 # import NavAdmin module
@@ -165,13 +157,8 @@ if ($allArtifacts) {
         }
 
         $pubwithoption = ''
-        if ($aadTenantId) {
-            $aad = [System.guid]::New($aadTenantId)
-            Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification -scope Tenant -PublisherAzureActiveDirectoryTenantId $aad
-            $pubwithoption = 'with PublisherAzureActiveDirectoryTenantId'
-        } else {
-            Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification -scope Tenant
-        }
+        Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification -scope Tenant
+        
         $App = Get-NAVAppInfo -ServerInstance $BCInstance -TenantSpecificProperties -name $appName -Tenant 'default' | Where-Object { $_.IsPublished }
         Write-Host "$("{0:d2}" -f $runner): publishing $($App.Name), $($App.Version) to $BCInstance $pubwithoption"
         Write-Host '... publish'
