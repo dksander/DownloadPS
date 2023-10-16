@@ -109,13 +109,6 @@ if ($allArtifacts) {
         
         # Search file in expandfolder with masked publisher and version, because new version depends on version strategie
         $mainAppFileName = $($appPublisher) + ("_$($appName)_".Split([System.IO.Path]::GetInvalidFileNameChars()) -join '') + "*.*.*.*.app"
-        write-host '***************************'
-        write-host 'destinationPath: ' $destinationPath
-        write-host 'name:' $_.name
-        write-host 'mainAppFileName:' $mainAppFileName
-        write-host ''
-        write-host ''
-        write-host '***************************'
         $appFile = Get-ChildItem -path $destinationPath | Where-Object { $_.name -like $mainAppFileName } | ForEach-Object { $_.FullName }
           if($appFile -eq $null) {
             $appFile = Get-ChildItem -path $destinationPath | select-object -First 1
@@ -159,13 +152,14 @@ if ($allArtifacts) {
         }
 
         $pubwithoption = ''
-        Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification -scope Tenant
+        Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification
         
         $App = Get-NAVAppInfo -ServerInstance $BCInstance -TenantSpecificProperties -name $appName -Tenant 'default' | Where-Object { $_.IsPublished }
         Write-Host "$("{0:d2}" -f $runner): publishing $($App.Name), $($App.Version) to $BCInstance $pubwithoption"
         Write-Host '... publish'
         if ($App.SyncState -ne 'Synced') {
             Write-Host "... sync $syncMode"
+            Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $app.publisher -Version $App.Version -Mode $syncMode -Force | Out-Null
             Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -publish $app.publisher -Version $App.Version -Mode $syncMode -Force
         }
         if (($UnpublisedApps -eq $true) -and ($skipDataupgrade -eq $false) -and (($UnpublishedVersion -ne $App.Version))) {
