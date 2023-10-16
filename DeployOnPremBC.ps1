@@ -8,9 +8,19 @@ param(
     $enableDataLoss,
     $uninstallMode
 )
+function PreLoadModule(){
+ 
+    if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
+        Write-Host "Installing NuGet Package Provider"
+        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -WarningAction Ignore | Out-Null
+    }
+    if (!(Get-Package -Name BcContainerHelper -ErrorAction Ignore)) {
+        Write-Host "Installing BCContainerHelper PowerShell package"
+        Install-Package BcContainerHelper -Force -WarningAction Ignore | Out-Null
+    }
+}
 
-function importModuleWithTestPath
-{
+function importModuleWithTestPath {
     Param (
         [string] $modulePath
     )
@@ -22,8 +32,7 @@ function importModuleWithTestPath
     }
 }
 
-function testOption
-{
+function testOption{
     Param (
         [array] $optionList,
         [string] $optionValue
@@ -34,8 +43,7 @@ function testOption
     }
 }
 
-function testIsGuid
-{
+function testIsGuid {
     [OutputType([bool])]
     param
     (
@@ -74,6 +82,8 @@ try {
 } catch {
     throw "$navServerServiceName service not installed"
 }
+#Load Bccontainer
+PreLoadModule;
 
 # create dynamic module from microsoft/AL-GO script block Github-Helper.psm1 (functions are immediately available in the session)
 $URL = 'https://raw.githubusercontent.com/microsoft/AL-Go-Actions/main/Github-Helper.psm1'
@@ -109,69 +119,71 @@ if ($allArtifacts) {
         
         # Search file in expandfolder with masked publisher and version, because new version depends on version strategie
         $mainAppFileName = $($appPublisher) + ("_$($appName)_".Split([System.IO.Path]::GetInvalidFileNameChars()) -join '') + "*.*.*.*.app"
-        $appFile = Get-ChildItem -path $destinationPath | Where-Object { $_.name -like $mainAppFileName } | ForEach-Object { $_.FullName }
-          if($appFile -eq $null) {
-            $appFile = Get-ChildItem -path $destinationPath | select-object -First 1
-          }
-        if (!(Test-Path $appFile.FullName)) {
-            throw "Could not find $appFile"
-        }
-        
-        Write-Host "`nDeploying Solution"
-        # publish
-        # first install, reinstall with same version, update to newer version, uninstall delete app data, uninstall clear (to lower version), sync add or force
-        $skipDataupgrade = $false
-        $UnpublisedApps = 'false'
-        $UnpublishedVersion = ''
-        $runner = 1
-        $Apps = Get-NAVAppInfo -ServerInstance $BCInstance -TenantSpecificProperties -name $appName -Tenant 'default' | Where-Object { $_.IsPublished }
-        foreach ($App in $Apps) {
-            Write-Host "$("{0:d2}" -f $runner): uninstalling $($App.Name), $($App.Version) from $BCInstance"
-            if ($App.IsInstalled) {
-                Write-Host "... uninstall $uninstallMode"
-                switch ($uninstallMode)
-                {
-                    DoNotSaveData {
-                        Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force -DoNotSaveData
-                        $SkipDataUpgrade = $true
-                    }
-                    ClearSchema {
-                        Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force -ClearSchema
-                        $SkipDataUpgrade = $true
-                    }
-                    default { 
-                        Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force
-                    }
-                }
-            }
-            Write-Host '... unpublish'
-            UnPublish-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version
-            $UnpublisedApps = $true
-            $UnpublishedVersion = $App.Version
-            $runner += 1
+        $appfiles = @();
+        foreach($item in Get-ChildItem -Path 'C:\Temp\buil' ) {
+            $appfiles += $item.FullName;
         }
 
-        $pubwithoption = ''
-        Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification
-        
-        $App = Get-NAVAppInfo -Path $appFile.FullName
-        Write-Host "$("{0:d2}" -f $runner): publishing $($App.Name), $($App.Version) to $BCInstance $pubwithoption"
-        
-        if (Get-NAVAppInfo -ServerInstance $BCInstance -Name $App.Name ) {
-            write-host "... Publishing app"
+        #Sort app in dependencies 
+        Sort-AppFilesByDependencies -appFiles $appfiles
+
+        foreach($appfile in $appfiles) {
+            Write-Host "`nDeploying Solution"
+            # publish
+            # first install, reinstall with same version, update to newer version, uninstall delete app data, uninstall clear (to lower version), sync add or force
+            $skipDataupgrade = $false
+            $UnpublisedApps = 'false'
+            $UnpublishedVersion = ''
+            $runner = 1
+            $Apps = Get-NAVAppInfo -ServerInstance $BCInstance -TenantSpecificProperties -name $appName -Tenant 'default' | Where-Object { $_.IsPublished }
+            foreach ($App in $Apps) {
+                Write-Host "$("{0:d2}" -f $runner): uninstalling $($App.Name), $($App.Version) from $BCInstance"
+                if ($App.IsInstalled) {
+                    Write-Host "... uninstall $uninstallMode"
+                    switch ($uninstallMode)
+                    {
+                        DoNotSaveData {
+                            Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force -DoNotSaveData
+                            $SkipDataUpgrade = $true
+                        }
+                        ClearSchema {
+                            Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force -ClearSchema
+                            $SkipDataUpgrade = $true
+                        }
+                        default { 
+                            Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force
+                        }
+                    }
+                }
+                Write-Host '... unpublish'
+                UnPublish-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version
+                $UnpublisedApps = $true
+                $UnpublishedVersion = $App.Version
+                $runner += 1
+            }
+
+            $pubwithoption = ''
             Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification
-            Write-Host "... sync $syncMode"
-            Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
-            Write-Host "... Upgrading App"
-            Start-NAVAppDataUpgrade -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version
-        }
-        else {
-            write-host "... Publishing app"
-            Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification
-            Write-Host "... sync $syncMode"
-            Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
-            Write-Host "... Installing  App"
-            Install-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version
+        
+            $App = Get-NAVAppInfo -Path $appFile.FullName
+            Write-Host "$("{0:d2}" -f $runner): publishing $($App.Name), $($App.Version) to $BCInstance $pubwithoption"
+        
+            if (Get-NAVAppInfo -ServerInstance $BCInstance -Name $App.Name ) {
+                write-host "... Publishing app"
+                Publish-NAVApp -ServerInstance $BCInstance -Path $appFile.FullName -SkipVerification
+                Write-Host "... sync $syncMode"
+                Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
+                Write-Host "... Upgrading App"
+                Start-NAVAppDataUpgrade -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version
+            }
+            else {
+                write-host "... Publishing app"
+                Publish-NAVApp -ServerInstance $BCInstance -Path $appFile -SkipVerification
+                Write-Host "... sync $syncMode"
+                Sync-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version | Out-Null
+                Write-Host "... Installing  App"
+                Install-NAVApp -ServerInstance $BCInstance -Name $App.Name -Publisher $App.Publisher -Version $App.version
+            }
         }
     }
 }
@@ -180,6 +192,6 @@ else {
 }
 
 # delete .artifact folder after deploy
-#if ($baseFolderCreated) {
-    #Remove-Item $baseFolder -Recurse -Force
-#}
+if ($baseFolderCreated) {
+    Remove-Item $baseFolder -Recurse -Force
+}
