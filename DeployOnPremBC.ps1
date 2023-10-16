@@ -92,7 +92,7 @@ try{
 }
 
 # create artifacts folder
-$baseFolder = Join-Path $ENV:GITHUB_WORKSPACE ".artifacts"
+$baseFolder = Join-Path (Get-Location).Path ".artifacts"
 if (!(Test-Path $baseFolder)) {
     New-Item $baseFolder -ItemType Directory | Out-Null
 }
