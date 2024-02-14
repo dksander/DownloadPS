@@ -156,10 +156,10 @@ if ($allArtifacts) {
                         #}
                     }
                 }
-                Write-Host '... unpublish'
-                UnPublish-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version
-                $UnpublisedApps = $true
-                $UnpublishedVersion = $App.Version
+                #Write-Host '... unpublish'
+                #UnPublish-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version
+                #$UnpublisedApps = $true
+                #$UnpublishedVersion = $App.Version
                 $runner += 1
             }
 
