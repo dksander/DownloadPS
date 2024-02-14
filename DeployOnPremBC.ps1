@@ -138,16 +138,17 @@ if ($allArtifacts) {
             $runner = 1
             $Apps = Get-NAVAppInfo -ServerInstance $BCInstance -TenantSpecificProperties -name $appName -Tenant 'default' | Where-Object { $_.IsPublished }
             foreach ($App in $Apps) {
-                Write-Host "$("{0:d2}" -f $runner): uninstalling $($App.Name), $($App.Version) from $BCInstance"
                 if ($App.IsInstalled) {
                     Write-Host "... uninstall $uninstallMode"
                     switch ($uninstallMode)
                     {
                         DoNotSaveData {
+                            Write-Host "$("{0:d2}" -f $runner): uninstalling $($App.Name), $($App.Version) from $BCInstance"
                             Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force -DoNotSaveData
                             $SkipDataUpgrade = $true
                         }
                         ClearSchema {
+                            Write-Host "$("{0:d2}" -f $runner): uninstalling $($App.Name), $($App.Version) from $BCInstance"
                             Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force -ClearSchema
                             $SkipDataUpgrade = $true
                         }
