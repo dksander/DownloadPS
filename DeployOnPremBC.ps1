@@ -151,9 +151,9 @@ if ($allArtifacts) {
                             Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force -ClearSchema
                             $SkipDataUpgrade = $true
                         }
-                        default { 
-                            Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force
-                        }
+                        #default { 
+                            #Uninstall-NAVApp -ServerInstance $BCInstance -Name $App.Name -Version $App.Version -Force
+                        #}
                     }
                 }
                 Write-Host '... unpublish'
