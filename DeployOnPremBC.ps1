@@ -101,6 +101,7 @@ if (!(Test-Path $baseFolder)) {
 }
 $baseFolderCreated = $true
 
+write-host 'API URL:'  $ENV:GITHUB_API_URL
 # get artifacts
 $allArtifacts = @(GetArtifacts -token $token -api_url $ENV:GITHUB_API_URL -repository $ENV:GITHUB_REPOSITORY -mask "Apps" -projects '*' -Version '*' -branch $branch)
 if ($allArtifacts) {
