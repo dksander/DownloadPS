@@ -86,7 +86,6 @@ Function ImportBCModule() {
     $navAdminToolPath = $ENV:ProgramFiles + '\Microsoft Dynamics 365 Business Central\' + $BCVersion + '\Service\NavAdminTool.ps1'
     ImportModule $navAdminToolPath
 }
-$ErrorOccured = $false;
 $ErrorList = New-Object "System.Collections.Generic.List[String]"
 
 
@@ -103,12 +102,12 @@ write-host 'Stopping services';
 if( !$debug) {
     StopService -servers $serverToRestart -services $ServiceToRestart
 }
-
+#checking values
+$appPath = (Join-Path -Path $appPath -ChildPath '\')
 
 write-host 'Create app list';
 #Search in App folder and add apps to list
 $appfiles = BuildAppList;
-
 
 
 # publish app / upgrade app
@@ -129,7 +128,6 @@ Foreach($appPath in $appfiles) {
                     Start-NAVAppDataUpgrade -ServerInstance $BCInstance -Name  $AppInfo.Name -Publisher $AppInfo.Publisher -Version $AppInfo.version
                 }
             catch {
-                $ErrorOccured = $true;
                 $ErrorList.add($_.Exception.Message);
             }
         }
@@ -148,7 +146,6 @@ Foreach($appPath in $appfiles) {
             Install-NAVApp -ServerInstance $BCInstance -Name $AppInfo.Name -Publisher $AppInfo.Publisher -Version $AppInfo.version
         }
         catch {
-            $ErrorOccured = $true;
             $ErrorList.add($_.Exception.Message);
         }
     }
@@ -159,22 +156,19 @@ Foreach($appPath in $appfiles) {
         }
     }
 }
-#####
-#####
+
 # Start services again
 if( !$debug) {
     StartService -servers $serverToRestart -services $ServiceToRestart
 }
 
 # Write if error occured
-IF ($ErrorOccured) {
+if(!$ErrorList.Count -eq 0) {
     Clear-Host
     Write-Host 'One or more error occured, please handle error' -BackgroundColor Red
-    if(!$ErrorList.Count -eq 0) {
-        Write-Host 'Errors occured is as following:' -BackgroundColor Red
-        foreach($e in $ErrorList) {
-            Write-Host $e -BackgroundColor Red
-        }
+    Write-Host 'Errors occured is as following:' -BackgroundColor Red
+    foreach($e in $ErrorList) {
+        Write-Host $e -BackgroundColor Red
     }
 }
 else {
