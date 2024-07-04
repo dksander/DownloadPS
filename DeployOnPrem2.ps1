@@ -2,7 +2,7 @@
  .Synopsis
  Script to run deploy on from AL-Go-PTE
  .Description
-    To Be Developed
+    Work in progress, be aware
 #>
 
 param(
