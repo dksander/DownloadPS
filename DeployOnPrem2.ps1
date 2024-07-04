@@ -117,7 +117,7 @@ Foreach($appPath in $appfiles) {
     $AppInfo = Get-NAVAppInfo -Path $appPath
     if (Get-NAVAppInfo -ServerInstance $BCInstance -Name $AppInfo.Name) {
         write-host 'Upgrading:' $AppInfo.Name
-        $AppversionInstalled = (Get-NAVAppInfo -ServerInstance $BCInstance -Name $AppInfo.Name -Version $AppInfo.version);
+        $AppversionInstalled = Get-NAVAppInfo -ServerInstance $BCInstance -Name $AppInfo.Name -Version $AppInfo.version;
         if($AppversionInstalled.version -gt $AppInfo.version) {
             try {
                     Write-host 'Publishing..';
