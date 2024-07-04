@@ -3,6 +3,7 @@
  Script to run deploy on from AL-Go-PTE
  .Description
     Work in progress, be aware
+    Script is created to  work with the next version of AL-Go for Github (newere than 5.2) to make use of custom field in DeployToXXX
 #>
 
 param(
@@ -14,8 +15,8 @@ param(
     $ServiceToRestart,
     $serverToRestart
 )
-$debug = $true;
-#$debug = $false;
+#For debugging
+$debug = $false;
 function PreLoadModule() {
     if (!(Get-Package -Name BcContainerHelper -ErrorAction Ignore)) {
         Write-Host "Installing BCContainerHelper PowerShell package"
@@ -35,14 +36,14 @@ function ImportModule{
     }
 }
 Function TestBCServiceIsRunning() {
-  $navServerServiceName =  "MicrosoftDynamicsNavServer`$" + $BCInstance;
+  $BcServiceName =  "MicrosoftDynamicsNavServer`$" + $BCInstance;
   try {
-      $nstStatus = (get-service "$navServerServiceName").Status;
+      $nstStatus = (get-service "$BcServiceName").Status;
       if ($nstStatus -ne 'Running') {
-          throw "$navServerServiceName service not running"
+          throw "$BcServiceName service not running"
       }
   } catch {
-      throw "$navServerServiceName service not installed"
+      throw "$BcServiceName service not installed"
   }
 }
 
@@ -98,17 +99,15 @@ PreLoadModule;
 ImportBCModule;
 
 write-host 'Stopping services';
-#Stop Service
 if( !$debug) {
     StopService -servers $serverToRestart -services $ServiceToRestart
 }
-#checking values
+#Correction values
 $appPath = (Join-Path -Path $appPath -ChildPath '\')
 
 write-host 'Create app list';
 #Search in App folder and add apps to list
 $appfiles = BuildAppList;
-
 
 # publish app / upgrade app
 write-host 'Publishing app(s)...';
@@ -118,7 +117,6 @@ Foreach($appPath in $appfiles) {
     if (Get-NAVAppInfo -ServerInstance $BCInstance -Name $AppInfo.Name) {
         write-host 'Upgrading:' $AppInfo.Name
         $AppversionInstalled = Get-NAVAppInfo -ServerInstance BC240 -Name App01 -Publisher 'NAV-Vision' -TenantSpecificProperties -Tenant 'default' |Where-Object{ $_.IsInstalled}
-
         if($AppversionInstalled.version -gt $AppInfo.version) {
             try {
                     Write-host 'Publishing..';
