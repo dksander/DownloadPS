@@ -87,7 +87,7 @@ try {
 PreLoadModule;
 
 #Import Pre script (functions are immediately available in the session)
-$URL = 'https://github.com/microsoft/AL-Go-Actions/blob/1728166fb73af77172fb788459cacbe8da6ab1d6/.Modules/DebugLogHelper.psm1'
+$URL = 'https://raw.githubusercontent.com/microsoft/AL-Go-Actions/1728166fb73af77172fb788459cacbe8da6ab1d6/.Modules/DebugLogHelper.psm1';
 try{
     New-Module -Name "$URL" -ScriptBlock ([Scriptblock]::Create((New-Object System.Net.WebClient).DownloadString($URL))) -ErrorAction SilentlyContinue > $null
 }catch{
